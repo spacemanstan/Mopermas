@@ -199,9 +199,42 @@ class Grid {
     
     // second half of entropy update
     gridEntropy += 1;
+    
+    // update entropies of nearby tiles based on entropy of current tile
+    updateSurroundingTiles(dx, dy, collapsedState);
 
     // set collapse flag
     tbc.collapsed = true;
+  }
+  
+  void updateSurroundingTiles(int gx, int gy, String cState) {
+    // adjacent up
+    if(gy > 0) {
+
+    }
+    // adjacent down
+    if(gy < dimY - 1) {
+      
+    }
+    // adjacent left
+    if(gx > 0) {
+      
+    }
+    // adjacent right
+    if(gx < dimY - 1) {
+      
+    }
+  }
+  
+  void collapeGrid() {
+    /*
+      1. IntList of all grid indices (GI)
+      2. shuffle GI (grid indices)
+      3. while gridEntropy > dimX*dimY
+      4. iterate backwards through GI
+      5. if collpased remove from GI
+      6. else collapse & update neighbours
+    */
   }
 
   void mouseCollapse() {
