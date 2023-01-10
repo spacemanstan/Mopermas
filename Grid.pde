@@ -54,40 +54,79 @@ class Grid {
       padY = (height - dimY * unit) / 2; // update y to center
     }
 
-    //// load christmas borders into array
-    //borders = new PImage[6];
-    //for (int ii = 0; ii < 3; ++ii) {
-    //  borders[ii] = loadImage("candy" + ii + ".png");
-    //}
-    //for (int ii = 0; ii < 3; ++ii) {
-    //  borders[ii + 2] = loadImage("cane" + ii + ".png");
-    //}
-
-    //// load images for tiles
-    //mopers = new PImage[1];
-    //mopers[0] = loadImage("moper.png");
+    loadImages();
 
     createGrid();
+    
+    borderNoise = 0.0;
   }
 
   void display() {
     pushStyle();
+    rectMode(CENTER);
+    imageMode(CENTER);
+
+    // draw background
     for (int dy = 0; dy < dimY; ++dy) {
       for (int dx = 0; dx < dimX; ++dx) {
         stroke(360);
         fill(69);
-        rect(padX + dx*unit, padY + unit*dy, unit, unit);
+        pushMatrix();
+        translate(padX + dx*unit + unit/2, padY + unit*dy + unit/2);
+        rect(0, 0, unit, unit);
 
         fill(120, 42, 69);
         textAlign(CENTER, CENTER);
-        text( grid[dx][dy], padX + dx*unit + unit/2, padY + unit*dy + unit/2);
-        //text( "[" + dx + "][" + dy + "]", padX + dx*unit + unit/2, padY + unit*dy + unit/2);
-        //text( (dx + dy * dimX), padX + dx*unit + unit/2, padY + unit*dy + unit/2);
+        text( grid[dx][dy], 0, 0);
+        popMatrix();
       }
     }
+
+    // draw borders
+    for (int dy = 0; dy < dimY; ++dy)
+      for (int dx = 0; dx < dimX; ++dx) {
+        final String tile = grid[dx][dy];
+        
+        pushMatrix();
+
+        translate(padX + dx*unit + unit/2, padY + unit*dy + unit/2);
+        int index = (int)(noise(borderNoise + (dx + dy * dimX)) * borders.length);
+        image(borders[index], 0, 0, unit, unit);
+
+        popMatrix();
+      }
+
     popStyle();
   }
 
+  void loadImages() {
+    // load christmas borders into array
+    borders = new PImage[6];
+    for (int ii = 0; ii < 3; ++ii) {
+      borders[ii] = loadImage("candy" + ii + ".png");
+    }
+    for (int ii = 0; ii < 3; ++ii) {
+      borders[ii + 3] = loadImage("cane" + ii + ".png");
+    }
+
+    // load images for tiles
+    mopers = new PImage[1];
+    mopers[0] = loadImage("moper.png");
+  }
+
+  /*
+   Grid is created with a pseudo wave function collapse function
+   Grid is created by starting with a 2d array of strings
+   null indicates if the string has been set yet or not
+   randomly choose between 3 options (if valid)
+   1. 1x1 tile
+   2. 2x2 top left
+   3. 3x3 top left
+   
+   if we go from the top left down each time, then if we randomly
+   place a top left grid, and it is always valid, we can just
+   assign the respective values corresponding to that top left
+   */
   void createGrid() {
     // declare grid;   null = unset state
     grid = new String[dimX][dimY];

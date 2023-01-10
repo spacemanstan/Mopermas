@@ -27,14 +27,14 @@ void draw() {
 
   mopers.display();
 
-  fill(120, 90, 90);
+  //fill(120, 90, 90);
 
-  textAlign(CENTER, CENTER);
-  posMX = (int)((mouseX - mopers.padX) / mopers.unit);
-  if (posMX < 0 || posMX >= mopers.dimX) posMX = posMX < 0 ? 0 : mopers.dimX - 1;
-  posMY = (int)((mouseY - mopers.padY) / mopers.unit);
-  if (posMY < 0 || posMY >= mopers.dimY) posMY = posMY < 0 ? 0 : mopers.dimY - 1;
-  text("[" + posMX + ", " + posMY + "]", mouseX, mouseY);
+  //textAlign(CENTER, CENTER);
+  //posMX = (int)((mouseX - mopers.padX) / mopers.unit);
+  //if (posMX < 0 || posMX >= mopers.dimX) posMX = posMX < 0 ? 0 : mopers.dimX - 1;
+  //posMY = (int)((mouseY - mopers.padY) / mopers.unit);
+  //if (posMY < 0 || posMY >= mopers.dimY) posMY = posMY < 0 ? 0 : mopers.dimY - 1;
+  //text("[" + posMX + ", " + posMY + "]", mouseX, mouseY);
 
   //float hueNoise = 69;
   //float satNouse = -420;
@@ -53,8 +53,8 @@ void draw() {
 
 void mousePressed() {
   if (mouseButton == LEFT)
-    mopers.printTile(posMX, posMY);
+    mopers.borderNoise += 0.01;
 
-  //if (mouseButton == RIGHT)
-  //  mopers.mouseCollapse();
+  if (mouseButton == RIGHT)
+    mopers.createGrid();
 }
