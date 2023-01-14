@@ -3,11 +3,14 @@ class Grid {
 
   final int dimX, dimY; // grid dimensions
 
+  final float angMax;
+
   float unit, /* grid square side length */
     padX, /* width padding for centering */
     padY, /* height padding for centering */
     borderNoise, /*  */
     moperNoise, /*  */
+    moperAngNoise, /*  */
     bgNoise; /*  */
 
   PImage[] borders, corners, mopers; // images
@@ -61,6 +64,8 @@ class Grid {
     borderNoise = 0.0;
     bgNoise = 0.0;
     moperNoise = 0.0;
+
+    angMax = radians(15);
   }
 
   void display() {
@@ -73,23 +78,23 @@ class Grid {
       for (int dx = 0; dx < dimX; ++dx) {
         final String tile = grid[dx][dy];
 
-        if( !(tile.equals("1x1[]") || tile.equals("2x2TL") || tile.equals("3x3MM")) )
+        if ( !(tile.equals("1x1[]") || tile.equals("2x2TL") || tile.equals("3x3MM")) )
           continue;
-        
+
         float noiseVal = noise(bgNoise + (dx + dy*dimX));
         float hue = ( (int)(noiseVal * 10) & 1 ) == 1 ? noiseVal * 40 + 100 : noiseVal * 20 + 340;
         float sat = noiseVal * 15 + 60;
         float brt = noiseVal * 30 + 44;
-        
+
         noStroke();
         fill(hue, sat, brt);
         pushMatrix();
-        
+
         if (tile.equals("1x1[]")) {
           translate(padX + dx*unit + unit/2, padY + unit*dy + unit/2);
           rect(0, 0, unit, unit);
         }
-        
+
         if (tile.equals("2x2TL")) {
           translate(padX + dx*unit + unit, padY + unit*dy + unit);
           rect(0, 0, 2*unit, 2*unit);
@@ -201,20 +206,50 @@ class Grid {
         int mni = (int)(noise(moperNoise + (dx + dy * dimX)) * mopers.length);
         final String tile = grid[dx][dy];
 
-        pushMatrix();
+        float angOffset = noise(moperNoise + (dx + dy * dimX)) * (angMax * 4);
+
+        float ang = (frameCount + angOffset) % (angMax * 4);
         
+        boolean rotation = true;
+
+        pushMatrix();
+
         if (tile.equals("1x1[]")) {
           translate(padX + dx*unit + unit/2, padY + unit*dy + unit/2);
+          
+          if (rotation) {
+            if (ang < 2 * angMax)
+              rotate(ang - angMax);
+            else
+              rotate(3*angMax - ang);
+          }
+          
           image(mopers[mni], 0, 0, unit, unit);
         }
-        
+
         if (tile.equals("2x2TL")) {
           translate(padX + dx*unit + unit, padY + unit*dy + unit);
+          
+          if (rotation) {
+            if (ang < 2 * angMax)
+              rotate(ang - angMax);
+            else
+              rotate(3*angMax - ang);
+          }
+          
           image(mopers[mni], 0, 0, 2*unit, 2*unit);
         }
 
         if (tile.equals("3x3MM")) {
           translate(padX + dx*unit + unit/2, padY + unit*dy + unit/2);
+
+          if (rotation) {
+            if (ang < 2 * angMax)
+              rotate(ang - angMax);
+            else
+              rotate(3*angMax - ang);
+          }
+
           image(mopers[mni], 0, 0, 3*unit, 3*unit);
         }
 

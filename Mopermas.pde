@@ -7,9 +7,9 @@ int posMX = 0, posMY = 0;
  ###############################################*/
 void setup() {
   // sketch params
-  //fullScreen();
-  size(500, 900);
-  //orientation(PORTRAIT);
+  fullScreen();
+  //size(500, 900);
+  orientation(PORTRAIT);
   colorMode(HSB, 360, 100, 100, 100);
 
   mopers = new Grid(5, 11);
