@@ -10,7 +10,7 @@ class Grid {
     moperNoise, /*  */
     bgNoise; /*  */
 
-  PImage[] borders, mopers; // images
+  PImage[] borders, corners, mopers; // images
 
   String[] options = {
     "1x1[]", /* [0] single tile [] looks like a square */
@@ -57,8 +57,10 @@ class Grid {
     loadImages();
 
     createGrid();
-    
+
     borderNoise = 0.0;
+    bgNoise = 0.0;
+    moperNoise = 0.0;
   }
 
   void display() {
@@ -69,15 +71,35 @@ class Grid {
     // draw background
     for (int dy = 0; dy < dimY; ++dy) {
       for (int dx = 0; dx < dimX; ++dx) {
-        stroke(360);
-        fill(69);
-        pushMatrix();
-        translate(padX + dx*unit + unit/2, padY + unit*dy + unit/2);
-        rect(0, 0, unit, unit);
+        final String tile = grid[dx][dy];
 
-        fill(120, 42, 69);
-        textAlign(CENTER, CENTER);
-        text( grid[dx][dy], 0, 0);
+        if( !(tile.equals("1x1[]") || tile.equals("2x2TL") || tile.equals("3x3MM")) )
+          continue;
+        
+        float noiseVal = noise(bgNoise + (dx + dy*dimX));
+        float hue = ( (int)(noiseVal * 10) & 1 ) == 1 ? noiseVal * 40 + 100 : noiseVal * 20 + 340;
+        float sat = noiseVal * 15 + 60;
+        float brt = noiseVal * 30 + 44;
+        
+        noStroke();
+        fill(hue, sat, brt);
+        pushMatrix();
+        
+        if (tile.equals("1x1[]")) {
+          translate(padX + dx*unit + unit/2, padY + unit*dy + unit/2);
+          rect(0, 0, unit, unit);
+        }
+        
+        if (tile.equals("2x2TL")) {
+          translate(padX + dx*unit + unit, padY + unit*dy + unit);
+          rect(0, 0, 2*unit, 2*unit);
+        }
+
+        if (tile.equals("3x3MM")) {
+          translate(padX + dx*unit + unit/2, padY + unit*dy + unit/2);
+          rect(0, 0, 3*unit, 3*unit);
+        }
+
         popMatrix();
       }
     }
@@ -85,13 +107,116 @@ class Grid {
     // draw borders
     for (int dy = 0; dy < dimY; ++dy)
       for (int dx = 0; dx < dimX; ++dx) {
+        // get a random border / corner image based on noise
+        // bni = border noise index
+        int bni = (int)(noise(borderNoise + (dx + dy * dimX)) * borders.length);
         final String tile = grid[dx][dy];
-        
+
         pushMatrix();
 
         translate(padX + dx*unit + unit/2, padY + unit*dy + unit/2);
-        int index = (int)(noise(borderNoise + (dx + dy * dimX)) * borders.length);
-        image(borders[index], 0, 0, unit, unit);
+
+        float imgUnit = unit;
+
+        if (tile.charAt(0) == '1') {
+          image(borders[bni], 0, 0, imgUnit, imgUnit);
+          image(corners[bni], 0, 0, imgUnit, imgUnit);
+
+          for (int poop = 0; poop < 3; ++poop) {
+            // update index; different color borders
+            ++bni;
+            bni %= borders.length;
+            // rotate piece; change side
+            rotate(HALF_PI);
+            // draw image and corner after rotation
+            image(borders[bni], 0, 0, imgUnit, imgUnit);
+            image(corners[bni], 0, 0, imgUnit, imgUnit);
+          }
+        } else {
+          // corners
+          if (tile.endsWith("TL")) {
+            image(borders[bni], 0, 0, imgUnit, imgUnit);
+            image(corners[bni], 0, 0, imgUnit, imgUnit);
+            rotate(HALF_PI);
+            image(borders[bni], 0, 0, imgUnit, imgUnit);
+          }
+          if (tile.endsWith("TR")) {
+            rotate(HALF_PI);
+            image(borders[bni], 0, 0, imgUnit, imgUnit);
+            image(corners[bni], 0, 0, imgUnit, imgUnit);
+            rotate(HALF_PI);
+            image(borders[bni], 0, 0, imgUnit, imgUnit);
+          }
+          if (tile.endsWith("BR")) {
+            rotate(PI);
+            image(borders[bni], 0, 0, imgUnit, imgUnit);
+            image(corners[bni], 0, 0, imgUnit, imgUnit);
+            rotate(HALF_PI);
+            image(borders[bni], 0, 0, imgUnit, imgUnit);
+          }
+          if (tile.endsWith("BL")) {
+            rotate(PI + HALF_PI);
+            image(borders[bni], 0, 0, imgUnit, imgUnit);
+            image(corners[bni], 0, 0, imgUnit, imgUnit);
+            rotate(HALF_PI);
+            image(borders[bni], 0, 0, imgUnit, imgUnit);
+          }
+          // edges
+          if (tile.endsWith("TM")) {
+            image(corners[bni], 0, 0, imgUnit, imgUnit);
+            rotate(HALF_PI);
+            image(borders[bni], 0, 0, imgUnit, imgUnit);
+            image(corners[bni], 0, 0, imgUnit, imgUnit);
+          }
+          if (tile.endsWith("MR")) {
+            rotate(HALF_PI);
+            image(corners[bni], 0, 0, imgUnit, imgUnit);
+            rotate(HALF_PI);
+            image(borders[bni], 0, 0, imgUnit, imgUnit);
+            image(corners[bni], 0, 0, imgUnit, imgUnit);
+          }
+          if (tile.endsWith("BM")) {
+            rotate(PI);
+            image(corners[bni], 0, 0, imgUnit, imgUnit);
+            rotate(HALF_PI);
+            image(borders[bni], 0, 0, imgUnit, imgUnit);
+            image(corners[bni], 0, 0, imgUnit, imgUnit);
+          }
+          if (tile.endsWith("ML")) {
+            rotate(PI + HALF_PI);
+            image(corners[bni], 0, 0, imgUnit, imgUnit);
+            rotate(HALF_PI);
+            image(borders[bni], 0, 0, imgUnit, imgUnit);
+            image(corners[bni], 0, 0, imgUnit, imgUnit);
+          }
+        }
+
+        popMatrix();
+      }
+
+    // draw images
+    for (int dy = 0; dy < dimY; ++dy)
+      for (int dx = 0; dx < dimX; ++dx) {
+        // moper noise index = mni
+        int mni = (int)(noise(moperNoise + (dx + dy * dimX)) * mopers.length);
+        final String tile = grid[dx][dy];
+
+        pushMatrix();
+        
+        if (tile.equals("1x1[]")) {
+          translate(padX + dx*unit + unit/2, padY + unit*dy + unit/2);
+          image(mopers[mni], 0, 0, unit, unit);
+        }
+        
+        if (tile.equals("2x2TL")) {
+          translate(padX + dx*unit + unit, padY + unit*dy + unit);
+          image(mopers[mni], 0, 0, 2*unit, 2*unit);
+        }
+
+        if (tile.equals("3x3MM")) {
+          translate(padX + dx*unit + unit/2, padY + unit*dy + unit/2);
+          image(mopers[mni], 0, 0, 3*unit, 3*unit);
+        }
 
         popMatrix();
       }
@@ -100,18 +225,22 @@ class Grid {
   }
 
   void loadImages() {
-    // load christmas borders into array
-    borders = new PImage[6];
-    for (int ii = 0; ii < 3; ++ii) {
-      borders[ii] = loadImage("candy" + ii + ".png");
-    }
-    for (int ii = 0; ii < 3; ++ii) {
-      borders[ii + 3] = loadImage("cane" + ii + ".png");
-    }
+    /*
+      load boarders from data folder
+     android hates folders (w/o permissions) so everything goes in data
+     all borders are named border_ where _ is an unsigned int
+     */
+    borders = new PImage[6]; // all border images default to left side
+    for (int ii = 0; ii < borders.length; ++ii)
+      borders[ii] = loadImage("border" + ii + ".png");
 
-    // load images for tiles
-    mopers = new PImage[1];
-    mopers[0] = loadImage("moper.png");
+    corners = new PImage[6]; // all corner images default to top left corner
+    for (int ii = 0; ii < corners.length; ++ii)
+      corners[ii] = loadImage("corner" + ii + ".png");
+
+    mopers = new PImage[1]; // all mopers are centered
+    for (int ii = 0; ii < mopers.length; ++ii)
+      mopers[ii] = loadImage("moper" + ii + ".png");
   }
 
   /*
@@ -150,9 +279,9 @@ class Grid {
          */
 
         /* [1] --> 2x2 top left */
-        if (dx < dimX - 1 && dy < dimY - 1) choices.append( options[1] );
+        if (dx < dimX - 1 && dy < dimY - 1 && check2x2(dx, dy)) choices.append( options[1] );
         /* [5] --> 3x3 top left */
-        if (dx < dimX - 2 && dy < dimY - 2) choices.append( options[5] );
+        if (dx < dimX - 2 && dy < dimY - 2 && check3x3(dx, dy)) choices.append( options[5] );
 
         // randomize choices
         if (choices.size() > 1)
@@ -188,6 +317,23 @@ class Grid {
         }
       }
     }
+  }
+
+  boolean check2x2(int dx, int dy) {
+    return grid[dx + 1][dy + 0] == null && /* 2x2TR */
+      grid[dx + 0][dy + 1] == null && /* 2x2BL */
+      grid[dx + 1][dy + 1] == null; /* 2x2BR */
+  }
+
+  boolean check3x3(int dx, int dy) {
+    return grid[dx + 1][dy + 0] == null && /** 3x3TM */
+      grid[dx + 2][dy + 0] == null && /** 3x3TR */
+      grid[dx + 0][dy + 1] == null && /** 3x3ML */
+      grid[dx + 1][dy + 1] == null && /** 3x3MM */
+      grid[dx + 2][dy + 1] == null && /* 3x3MR */
+      grid[dx + 0][dy + 2] == null && /* 3x3BL */
+      grid[dx + 1][dy + 2] == null && /* 3x3BM */
+      grid[dx + 2][dy + 2] == null; /* 3x3BR */
   }
 
   void printTile(int ix, int iy) {
